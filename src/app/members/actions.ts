@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isAdmin } from "@/lib/permissions";
+import { logAction } from "@/lib/audit";
 import type { Role } from "@prisma/client";
 
 async function requireAdmin() {
@@ -11,10 +12,11 @@ async function requireAdmin() {
   if (!session?.user || !isAdmin(session.user)) {
     throw new Error("Forbidden");
   }
+  return session.user;
 }
 
 export async function createUserAction(formData: FormData) {
-  await requireAdmin();
+  const admin = await requireAdmin();
 
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   if (!email) throw new Error("Email is required");
@@ -24,24 +26,26 @@ export async function createUserAction(formData: FormData) {
   const departmentId = (formData.get("departmentId") as string) || null;
 
   await prisma.user.create({ data: { email, name, role, departmentId } });
+  await logAction(admin.id, "member.create", email);
 
   revalidatePath("/members");
 }
 
 export async function updateUserAction(formData: FormData) {
-  await requireAdmin();
+  const admin = await requireAdmin();
 
   const id = String(formData.get("id"));
   const role = formData.get("role") as Role;
   const departmentId = (formData.get("departmentId") as string) || null;
 
   await prisma.user.update({ where: { id }, data: { role, departmentId } });
+  await logAction(admin.id, "member.update", `${id} -> role=${role} dept=${departmentId ?? "none"}`);
 
   revalidatePath("/members");
 }
 
 export async function deleteUserAction(formData: FormData) {
-  await requireAdmin();
+  const admin = await requireAdmin();
 
   const id = String(formData.get("id"));
 
@@ -58,6 +62,7 @@ export async function deleteUserAction(formData: FormData) {
   }
 
   await prisma.user.delete({ where: { id } });
+  await logAction(admin.id, "member.delete", user?.email);
 
   revalidatePath("/members");
 }

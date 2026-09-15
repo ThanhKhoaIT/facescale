@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { canAssignDeviceDepartment, canAssignDeviceMember } from "@/lib/permissions";
+import { logAction } from "@/lib/audit";
 
 export async function assignDeviceDepartmentAction(formData: FormData) {
   const session = await auth();
@@ -19,6 +20,8 @@ export async function assignDeviceDepartmentAction(formData: FormData) {
     update: { departmentId, assignedUserId: null },
     create: { headscaleNodeId, departmentId },
   });
+
+  await logAction(session.user.id, "device.assign_department", `${headscaleNodeId} -> ${departmentId ?? "none"}`);
 
   revalidatePath("/devices");
 }
@@ -38,8 +41,8 @@ export async function assignDeviceMemberAction(formData: FormData) {
   }
 
   if (assignedUserId) {
-    const target = await prisma.user.findUnique({ where: { id: assignedUserId } });
-    if (!target || target.departmentId !== session.user.departmentId) {
+    const assignee = await prisma.user.findUnique({ where: { id: assignedUserId } });
+    if (!assignee || assignee.departmentId !== session.user.departmentId) {
       throw new Error("Invalid assignee: must be a member of your department");
     }
   }
@@ -49,6 +52,8 @@ export async function assignDeviceMemberAction(formData: FormData) {
     update: { assignedUserId },
     create: { headscaleNodeId, departmentId: deviceDepartmentId, assignedUserId },
   });
+
+  await logAction(session.user.id, "device.assign_member", `${headscaleNodeId} -> ${assignedUserId ?? "none"}`);
 
   revalidatePath("/devices");
 }
