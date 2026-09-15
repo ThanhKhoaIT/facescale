@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Role } from "@prisma/client";
+import { signOut } from "@/lib/auth";
 
 const NAV_ITEMS: { href: string; label: string; roles?: Role[] }[] = [
   { href: "/", label: "Dashboard" },
@@ -14,7 +15,7 @@ export function Sidebar({ role }: { role: Role }) {
   const items = NAV_ITEMS.filter((item) => !item.roles || item.roles.includes(role));
 
   return (
-    <nav className="w-56 shrink-0 border-r border-black/[.08] p-4 dark:border-white/[.145]">
+    <nav className="flex w-56 shrink-0 flex-col justify-between border-r border-black/[.08] p-4 dark:border-white/[.145]">
       <ul className="flex flex-col gap-1">
         {items.map((item) => (
           <li key={item.href}>
@@ -27,6 +28,19 @@ export function Sidebar({ role }: { role: Role }) {
           </li>
         ))}
       </ul>
+      <form
+        action={async () => {
+          "use server";
+          await signOut();
+        }}
+      >
+        <button
+          type="submit"
+          className="w-full rounded px-3 py-2 text-left text-sm font-medium hover:bg-black/[.04] dark:hover:bg-white/[.08]"
+        >
+          Đăng xuất
+        </button>
+      </form>
     </nav>
   );
 }
