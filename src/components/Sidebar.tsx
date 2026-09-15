@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { Role } from "@prisma/client";
 import { signOut } from "@/lib/auth";
 import { NAV_ITEMS } from "@/lib/nav-items";
@@ -10,7 +11,10 @@ export function Sidebar({ role }: { role: Role }) {
   return (
     <nav className="hidden w-56 shrink-0 flex-col justify-between bg-ink p-4 text-white sm:flex">
       <div>
-        <p className="mb-4 px-3 text-sm font-semibold tracking-wide">Facescale</p>
+        <div className="mb-4 flex items-center gap-2 px-3">
+          <Image src="/facescale.png" alt="" width={24} height={24} />
+          <p className="text-sm font-semibold tracking-wide">Facescale</p>
+        </div>
         <ul className="flex flex-col gap-1">
           {items.map((item) => (
             <li key={item.href}>

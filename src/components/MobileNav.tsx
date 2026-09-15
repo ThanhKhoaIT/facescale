@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import type { Role } from "@prisma/client";
 import { NAV_ITEMS } from "@/lib/nav-items";
 import { Icon } from "@/components/Icon";
@@ -13,7 +14,10 @@ export function MobileNav({ role, onSignOut }: { role: Role; onSignOut: (formDat
   return (
     <div className="sticky top-0 z-20 bg-ink text-white sm:hidden">
       <div className="flex items-center justify-between px-4 py-3">
-        <span className="text-sm font-semibold">Facescale</span>
+        <span className="flex items-center gap-2 text-sm font-semibold">
+          <Image src="/facescale.png" alt="" width={22} height={22} />
+          Facescale
+        </span>
         <button
           type="button"
           aria-label={open ? "Close menu" : "Open menu"}

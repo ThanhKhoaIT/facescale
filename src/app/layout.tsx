@@ -20,6 +20,7 @@ const plexMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "Facescale",
   description: "Headscale + Tailscale UI/UX for managing members & devices at Lixibox",
+  icons: { icon: "/facescale.png" },
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {

@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 export function AuthShell({ children }: { children: React.ReactNode }) {
   return (
     <main
@@ -7,6 +9,7 @@ export function AuthShell({ children }: { children: React.ReactNode }) {
         backgroundSize: "28px 28px",
       }}
     >
+      <Image src="/facescale.png" alt="Facescale" width={48} height={48} className="mb-4" />
       <div className="w-full max-w-sm rounded-2xl bg-paper p-6 shadow-xl shadow-black/30 sm:p-8">{children}</div>
     </main>
   );
