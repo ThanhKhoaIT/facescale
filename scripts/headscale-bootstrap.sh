@@ -17,7 +17,7 @@ until docker compose exec -T headscale headscale users list >/dev/null 2>&1; do
   sleep 1
 done
 
-if ! docker compose exec -T headscale headscale users list --output json | jq -e --arg n "$USER_NAME" 'any(.[]; .name == $n)' >/dev/null; then
+if ! docker compose exec -T headscale headscale users list --output json | jq -e --arg n "$USER_NAME" '(. // []) | any(.[]; .name == $n)' >/dev/null; then
   docker compose exec -T headscale headscale users create "$USER_NAME"
 fi
 

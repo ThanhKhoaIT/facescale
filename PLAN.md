@@ -48,8 +48,13 @@ Phase 1 code cứng 1 Leader/1 Department để giữ đơn giản.
   `AccessRequest` cho email ngoài domain, trang `/pending`.
 
 - **Phase 3 — Headscale API client**: `src/lib/headscale.ts` — connect bằng
-  `HEADSCALE_URL`/`HEADSCALE_API_KEY`, list nodes, map trạng thái online/offline,
-  direct/DERP. Test lên sandbox Phase 0.5.
+  `HEADSCALE_URL`/`HEADSCALE_API_KEY`, list nodes, map trạng thái online/offline.
+  Test lên sandbox Phase 0.5.
+  > Quyết định: **bỏ cột direct/DERP ở Phase 1**. Đã verify bằng sandbox: Headscale
+  > REST API (`/api/v1/node`) không có field này — đó là data-plane info chỉ tồn
+  > tại phía client (`tailscale status --json` trên từng node), Headscale control
+  > plane không lưu/expose lại tập trung. Muốn có lại thì cần thêm 1 "monitor node"
+  > (backend tự join tailnet) — để dành cho Giai đoạn 2 nếu cần.
 
 - **Phase 4 — Layout & phân quyền UI**: Sidebar/menu chính, layout, helper
   `src/lib/permissions.ts` scope dữ liệu theo role.
