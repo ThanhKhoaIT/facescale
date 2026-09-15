@@ -11,7 +11,8 @@ cp .env.example .env   # điền Headscale URL/API key, Google OAuth credentials
 npm run dev
 ```
 
-Mở [http://localhost:3000](http://localhost:3000).
+Mở [http://localhost:3001](http://localhost:3001) (dùng port 3001 mặc định vì 3000
+thường bị chiếm bởi project khác, vd Rails app).
 
 ## Local Headscale sandbox
 
@@ -27,9 +28,9 @@ docker compose exec headscale headscale nodes list   # xác nhận 2 node đã j
 ```
 
 Paste `HEADSCALE_API_KEY` vào `.env` (`HEADSCALE_URL` mặc định đã trỏ
-`http://localhost:8080`). Lưu ý: vì 2 node cùng docker network với headscale
-(không NAT) nên có thể luôn báo trạng thái `direct`, không tự nhiên ra DERP — muốn
-test DERP thì join thêm 1 thiết bị thật ở ngoài mạng docker.
+`http://localhost:8080`). Đã verify: 2 node sandbox kết nối qua DERP relay (không
+direct) — nhưng không sao, vì Phase 1 chỉ hiển thị online/offline, không hiển thị
+direct/DERP (xem PLAN.md phần Phase 3 để biết lý do).
 
 ## Stack
 
