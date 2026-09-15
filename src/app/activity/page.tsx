@@ -1,9 +1,11 @@
+import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { ActivityTable } from "./ActivityTable";
 
 export default async function ActivityPage() {
   const session = await auth();
-  if (!session?.user) return null;
+  if (!session?.user) redirect("/");
 
   const logs = await prisma.auditLog.findMany({
     include: { actor: true },
@@ -11,29 +13,18 @@ export default async function ActivityPage() {
     take: 200,
   });
 
+  const entries = logs.map((log) => ({
+    id: log.id,
+    createdAt: log.createdAt.toLocaleString("vi-VN"),
+    actorEmail: log.actor?.email ?? null,
+    action: log.action,
+    target: log.target,
+  }));
+
   return (
-    <main className="p-8">
-      <h1 className="mb-4 text-xl font-semibold">Activity</h1>
-      <table className="w-full text-left text-sm">
-        <thead>
-          <tr className="border-b border-black/[.08] dark:border-white/[.145]">
-            <th className="py-2 pr-4">When</th>
-            <th className="py-2 pr-4">Who</th>
-            <th className="py-2 pr-4">Action</th>
-            <th className="py-2 pr-4">Details</th>
-          </tr>
-        </thead>
-        <tbody>
-          {logs.map((log) => (
-            <tr key={log.id} className="border-b border-black/[.04] dark:border-white/[.08]">
-              <td className="py-2 pr-4">{log.createdAt.toLocaleString("vi-VN")}</td>
-              <td className="py-2 pr-4">{log.actor?.email ?? "—"}</td>
-              <td className="py-2 pr-4">{log.action}</td>
-              <td className="py-2 pr-4">{log.target ?? "—"}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <main className="bg-paper-muted p-4 sm:p-8">
+      <h1 className="mb-4 text-xl font-semibold text-ink">Activity</h1>
+      <ActivityTable logs={entries} />
     </main>
   );
 }

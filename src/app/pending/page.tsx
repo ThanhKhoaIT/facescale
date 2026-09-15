@@ -1,3 +1,5 @@
+import { AuthShell } from "@/components/AuthShell";
+
 type PendingPageProps = {
   searchParams: Promise<{ email?: string; status?: string }>;
 };
@@ -11,14 +13,14 @@ export default async function PendingPage({ searchParams }: PendingPageProps) {
       : "Your access request is pending Admin approval.";
 
   return (
-    <main className="flex min-h-screen items-center justify-center p-8">
-      <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold">{message}</h1>
-        {email && <p className="mt-2 text-sm text-gray-500">{email}</p>}
-        <p className="mt-4 text-sm text-gray-500">
+    <AuthShell>
+      <div className="text-center">
+        <h1 className="text-xl font-semibold text-ink">{message}</h1>
+        {email && <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">{email}</p>}
+        <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
           Contact an Admin if you need access urgently.
         </p>
       </div>
-    </main>
+    </AuthShell>
   );
 }

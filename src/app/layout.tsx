@@ -1,17 +1,20 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import { auth } from "@/lib/auth";
+import { IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
+import { auth, signOut } from "@/lib/auth";
 import { Sidebar } from "@/components/Sidebar";
+import { MobileNav } from "@/components/MobileNav";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const plexSans = IBM_Plex_Sans({
+  variable: "--font-plex-sans",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const plexMono = IBM_Plex_Mono({
+  variable: "--font-plex-mono",
   subsets: ["latin"],
+  weight: ["400", "500"],
 });
 
 export const metadata: Metadata = {
@@ -25,11 +28,25 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${plexSans.variable} ${plexMono.variable} min-h-dvh antialiased ${session?.user ? "bg-paper-muted" : "bg-ink"}`}
     >
-      <body className="min-h-full flex flex-col">
+      <head>
+        {/* eslint-disable-next-line @next/next/no-page-custom-font -- this rule targets Pages Router _document.js; app/layout.tsx is the App Router equivalent global head */}
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
+        />
+      </head>
+      <body className={`min-h-dvh flex flex-col ${session?.user ? "bg-paper-muted" : "bg-ink"}`}>
         {session?.user ? (
-          <div className="flex flex-1">
+          <div className="flex flex-1 flex-col sm:flex-row">
+            <MobileNav
+              role={session.user.role}
+              onSignOut={async () => {
+                "use server";
+                await signOut();
+              }}
+            />
             <Sidebar role={session.user.role} />
             <div className="flex flex-1 flex-col">{children}</div>
           </div>

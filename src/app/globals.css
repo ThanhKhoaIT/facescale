@@ -1,26 +1,51 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: var(--paper-muted);
+  --foreground: var(--ink);
+
+  --ink: #131a22;
+  --ink-line: #232c37;
+  --paper: #ffffff;
+  --paper-muted: #f4f6f8;
+  --paper-line: #e4e7eb;
+  --signal: #e8b33d;
+  --signal-ink: #131a22;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-plex-sans);
+  --font-mono: var(--font-plex-mono);
+
+  --color-ink: var(--ink);
+  --color-ink-line: var(--ink-line);
+  --color-paper: var(--paper);
+  --color-paper-muted: var(--paper-muted);
+  --color-paper-line: var(--paper-line);
+  --color-signal: var(--signal);
+  --color-signal-ink: var(--signal-ink);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --paper: #1b222c;
+    --paper-muted: #10151c;
+    --paper-line: #2a323d;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Helvetica, sans-serif;
+}
+
+.material-symbols-outlined {
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 20;
+  font-size: 20px;
+  line-height: 1;
+  vertical-align: middle;
+  user-select: none;
 }

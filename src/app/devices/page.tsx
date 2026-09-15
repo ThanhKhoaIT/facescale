@@ -1,12 +1,14 @@
+import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { listHeadscaleNodes, type HeadscaleNode } from "@/lib/headscale";
-import { scopeDevicesForUser, canAssignDeviceDepartment, canAssignDeviceMember } from "@/lib/permissions";
+import { scopeDevicesForUser, canAssignDeviceDepartment } from "@/lib/permissions";
 import { assignDeviceDepartmentAction, assignDeviceMemberAction } from "./actions";
+import { DeviceTable } from "./DeviceTable";
 
 export default async function DevicesPage() {
   const session = await auth();
-  if (!session?.user) return null;
+  if (!session?.user) redirect("/");
   const user = session.user;
 
   let headscaleNodes: HeadscaleNode[] = [];
@@ -38,83 +40,26 @@ export default async function DevicesPage() {
   });
 
   const scopedDevices = scopeDevicesForUser(user, devices);
-  const departmentNameById = new Map(departments.map((d) => [d.id, d.name]));
 
   if (headscaleError) {
     return (
-      <main className="p-8">
+      <main className="bg-paper-muted p-4 sm:p-8">
         <p className="text-red-600">Could not connect to Headscale: {headscaleError}</p>
       </main>
     );
   }
 
   return (
-    <main className="p-8">
-      <h1 className="mb-4 text-xl font-semibold">Devices</h1>
-      <table className="w-full text-left text-sm">
-        <thead>
-          <tr className="border-b border-black/[.08] dark:border-white/[.145]">
-            <th className="py-2 pr-4">Name</th>
-            <th className="py-2 pr-4">IP</th>
-            <th className="py-2 pr-4">Status</th>
-            <th className="py-2 pr-4">Department</th>
-            <th className="py-2 pr-4">Member</th>
-          </tr>
-        </thead>
-        <tbody>
-          {scopedDevices.map((device) => (
-            <tr key={device.id} className="border-b border-black/[.04] dark:border-white/[.08]">
-              <td className="py-2 pr-4">{device.givenName || device.name}</td>
-              <td className="py-2 pr-4">{device.ipAddresses[0]}</td>
-              <td className="py-2 pr-4">
-                <span className={device.online ? "text-green-600" : "text-gray-400"}>
-                  {device.online ? "Online" : "Offline"}
-                </span>
-              </td>
-              <td className="py-2 pr-4">
-                {canAssignDeviceDepartment(user) ? (
-                  <form action={assignDeviceDepartmentAction} className="flex gap-2">
-                    <input type="hidden" name="headscaleNodeId" value={device.id} />
-                    <select name="departmentId" defaultValue={device.departmentId ?? ""} className="rounded border px-2 py-1">
-                      <option value="">— unassigned —</option>
-                      {departments.map((d) => (
-                        <option key={d.id} value={d.id}>
-                          {d.name}
-                        </option>
-                      ))}
-                    </select>
-                    <button type="submit" className="rounded bg-black px-2 py-1 text-white">
-                      Save
-                    </button>
-                  </form>
-                ) : (
-                  (device.departmentId && departmentNameById.get(device.departmentId)) ?? "—"
-                )}
-              </td>
-              <td className="py-2 pr-4">
-                {canAssignDeviceMember(user, { departmentId: device.departmentId, assignedUserId: device.assignedUserId }) ? (
-                  <form action={assignDeviceMemberAction} className="flex gap-2">
-                    <input type="hidden" name="headscaleNodeId" value={device.id} />
-                    <select name="assignedUserId" defaultValue={device.assignedUserId ?? ""} className="rounded border px-2 py-1">
-                      <option value="">— unassigned —</option>
-                      {deptMembers.map((m) => (
-                        <option key={m.id} value={m.id}>
-                          {m.name ?? m.email}
-                        </option>
-                      ))}
-                    </select>
-                    <button type="submit" className="rounded bg-black px-2 py-1 text-white">
-                      Save
-                    </button>
-                  </form>
-                ) : (
-                  device.assignedUserLabel ?? "—"
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <main className="bg-paper-muted p-4 sm:p-8">
+      <h1 className="mb-4 text-xl font-semibold text-ink">Devices</h1>
+      <DeviceTable
+        devices={scopedDevices}
+        departments={departments}
+        deptMembers={deptMembers}
+        user={user}
+        assignDeviceDepartmentAction={assignDeviceDepartmentAction}
+        assignDeviceMemberAction={assignDeviceMemberAction}
+      />
     </main>
   );
 }
