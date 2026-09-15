@@ -1,4 +1,4 @@
-# Headscaler
+# Facescale
 
 Headscale + Tailscale UI/UX quản lý member & device cho Lixibox. Xem [PLAN.md](./PLAN.md)
 cho roadmap chi tiết theo phase.

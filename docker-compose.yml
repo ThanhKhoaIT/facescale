@@ -1,3 +1,5 @@
+name: facescale
+
 services:
   headscale:
     image: headscale/headscale:latest

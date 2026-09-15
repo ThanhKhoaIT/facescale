@@ -1,4 +1,4 @@
-# Headscaler — Kế hoạch triển khai
+# Facescale — Kế hoạch triển khai
 
 Headscale + Tailscale UI/UX quản lý member & device, xác thực Google, dành cho người
 không chuyên network. Giai đoạn 1 (MVP) tập trung quản lý member/device thật tốt.
