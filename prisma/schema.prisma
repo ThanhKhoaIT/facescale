@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum Role {
+  ADMIN
+  LEADER
+  MEMBER
+}
+
+enum AccessRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?
+  image        String?
+  role         Role     @default(MEMBER)
+  departmentId String?
+  department   Department? @relation("DepartmentMembers", fields: [departmentId], references: [id])
+  createdAt    DateTime @updatedAt @default(now())
+
+  ledDepartment    Department?    @relation("DepartmentLeader")
+  assignedDevices  DeviceMeta[]   @relation("DeviceAssignee")
+  auditLogs        AuditLog[]
+  decidedRequests  AccessRequest[] @relation("AccessRequestDecider")
+}
+
+model Department {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  leaderId  String?  @unique
+  leader    User?    @relation("DepartmentLeader", fields: [leaderId], references: [id])
+  members   User[]   @relation("DepartmentMembers")
+  devices   DeviceMeta[]
+  createdAt DateTime @default(now())
+}
+
+model DeviceMeta {
+  id              String   @id @default(cuid())
+  headscaleNodeId String   @unique
+  departmentId    String?
+  department      Department? @relation(fields: [departmentId], references: [id])
+  assignedUserId  String?
+  assignedUser    User?    @relation("DeviceAssignee", fields: [assignedUserId], references: [id])
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model AccessRequest {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  status       AccessRequestStatus @default(PENDING)
+  requestedAt  DateTime @default(now())
+  decidedById  String?
+  decidedBy    User?    @relation("AccessRequestDecider", fields: [decidedById], references: [id])
+  decidedAt    DateTime?
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String?
+  actor     User?    @relation(fields: [actorId], references: [id])
+  action    String
+  target    String?
+  createdAt DateTime @default(now())
+}
