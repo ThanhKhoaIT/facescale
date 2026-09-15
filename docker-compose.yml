@@ -1,0 +1,55 @@
+services:
+  headscale:
+    image: headscale/headscale:latest
+    container_name: headscale
+    command: serve
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+      - "9090:9090"
+    volumes:
+      - ./headscale/config.yaml:/etc/headscale/config.yaml:ro
+      - headscale-data:/var/lib/headscale
+
+  tailscale-node1:
+    image: tailscale/tailscale:latest
+    container_name: ts-node1
+    hostname: node1
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    environment:
+      - TS_AUTHKEY=${TS_PREAUTHKEY:-}
+      - TS_EXTRA_ARGS=--login-server=http://headscale:8080 --accept-dns=false
+      - TS_STATE_DIR=/var/lib/tailscale
+    volumes:
+      - ts-node1-data:/var/lib/tailscale
+    depends_on:
+      - headscale
+    restart: unless-stopped
+
+  tailscale-node2:
+    image: tailscale/tailscale:latest
+    container_name: ts-node2
+    hostname: node2
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    environment:
+      - TS_AUTHKEY=${TS_PREAUTHKEY:-}
+      - TS_EXTRA_ARGS=--login-server=http://headscale:8080 --accept-dns=false
+      - TS_STATE_DIR=/var/lib/tailscale
+    volumes:
+      - ts-node2-data:/var/lib/tailscale
+    depends_on:
+      - headscale
+    restart: unless-stopped
+
+volumes:
+  headscale-data:
+  ts-node1-data:
+  ts-node2-data:
