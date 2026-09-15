@@ -17,10 +17,10 @@ export default async function ActivityPage() {
       <table className="w-full text-left text-sm">
         <thead>
           <tr className="border-b border-black/[.08] dark:border-white/[.145]">
-            <th className="py-2 pr-4">Lúc</th>
-            <th className="py-2 pr-4">Ai</th>
+            <th className="py-2 pr-4">When</th>
+            <th className="py-2 pr-4">Who</th>
             <th className="py-2 pr-4">Action</th>
-            <th className="py-2 pr-4">Chi tiết</th>
+            <th className="py-2 pr-4">Details</th>
           </tr>
         </thead>
         <tbody>

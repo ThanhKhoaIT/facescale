@@ -19,8 +19,8 @@ export default async function Home({ searchParams }: HomeProps) {
 
     return (
       <main className="flex min-h-screen flex-col items-center justify-center gap-4 p-8">
-        {registered && <p className="text-green-700">Đăng ký thành công, đăng nhập luôn bên dưới.</p>}
-        {error && <p className="text-red-600">Sai thông tin đăng nhập hoặc mã đã hết hạn.</p>}
+        {registered && <p className="text-green-700">Registration successful, sign in below.</p>}
+        {error && <p className="text-red-600">Invalid credentials or the code has expired.</p>}
 
         {authMethod === "password" ? (
           <>
@@ -28,27 +28,27 @@ export default async function Home({ searchParams }: HomeProps) {
               <input name="email" type="email" required placeholder="email@lixibox.com" className="rounded border px-3 py-2" />
               <input name="password" type="password" required placeholder="Password" className="rounded border px-3 py-2" />
               <button type="submit" className="rounded bg-black px-4 py-2 text-white">
-                Đăng nhập
+                Sign in
               </button>
             </form>
             <Link href="/register" className="text-sm text-gray-500 underline">
-              Chưa có tài khoản? Đăng ký
+              Don&apos;t have an account? Register
             </Link>
           </>
         ) : step === "code" && email ? (
           <form action={verifyOtpAction} className="flex w-full max-w-xs flex-col gap-2">
             <input type="hidden" name="email" value={email} />
-            <p className="text-sm text-gray-500">Mã đã gửi qua Slack cho {email}</p>
-            <input name="code" required placeholder="Mã 6 số" className="rounded border px-3 py-2" />
+            <p className="text-sm text-gray-500">Code sent via Slack to {email}</p>
+            <input name="code" required placeholder="6-digit code" className="rounded border px-3 py-2" />
             <button type="submit" className="rounded bg-black px-4 py-2 text-white">
-              Xác nhận
+              Confirm
             </button>
           </form>
         ) : (
           <form action={requestOtpAction} className="flex w-full max-w-xs flex-col gap-2">
             <input name="email" type="email" required placeholder="email@lixibox.com" className="rounded border px-3 py-2" />
             <button type="submit" className="rounded bg-black px-4 py-2 text-white">
-              Gửi mã qua Slack
+              Send code via Slack
             </button>
           </form>
         )}
@@ -87,7 +87,7 @@ export default async function Home({ searchParams }: HomeProps) {
   return (
     <main className="p-8">
       <h1 className="mb-6 text-xl font-semibold">Dashboard</h1>
-      {headscaleError && <p className="mb-4 text-red-600">Không kết nối được Headscale: {headscaleError}</p>}
+      {headscaleError && <p className="mb-4 text-red-600">Could not connect to Headscale: {headscaleError}</p>}
       <div className="flex flex-wrap gap-4">
         <div className="rounded border border-black/[.08] p-4 dark:border-white/[.145]">
           <p className="text-sm text-gray-500">Members</p>

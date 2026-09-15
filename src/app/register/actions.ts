@@ -10,12 +10,12 @@ export async function registerAction(formData: FormData) {
   const password = String(formData.get("password") ?? "");
   const name = (formData.get("name") as string) || null;
 
-  if (!email || !password) throw new Error("Email và password là bắt buộc");
-  if (password.length < 8) throw new Error("Password phải từ 8 ký tự trở lên");
+  if (!email || !password) throw new Error("Email and password are required");
+  if (password.length < 8) throw new Error("Password must be at least 8 characters");
 
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing?.passwordHash) {
-    throw new Error("Email này đã có tài khoản, vui lòng đăng nhập.");
+    throw new Error("This email already has an account, please sign in.");
   }
 
   const decision = await resolveSignInAccess(email, { name });

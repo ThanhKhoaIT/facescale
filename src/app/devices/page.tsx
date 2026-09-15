@@ -43,7 +43,7 @@ export default async function DevicesPage() {
   if (headscaleError) {
     return (
       <main className="p-8">
-        <p className="text-red-600">Không kết nối được Headscale: {headscaleError}</p>
+        <p className="text-red-600">Could not connect to Headscale: {headscaleError}</p>
       </main>
     );
   }
@@ -54,9 +54,9 @@ export default async function DevicesPage() {
       <table className="w-full text-left text-sm">
         <thead>
           <tr className="border-b border-black/[.08] dark:border-white/[.145]">
-            <th className="py-2 pr-4">Tên</th>
+            <th className="py-2 pr-4">Name</th>
             <th className="py-2 pr-4">IP</th>
-            <th className="py-2 pr-4">Trạng thái</th>
+            <th className="py-2 pr-4">Status</th>
             <th className="py-2 pr-4">Department</th>
             <th className="py-2 pr-4">Member</th>
           </tr>
@@ -76,7 +76,7 @@ export default async function DevicesPage() {
                   <form action={assignDeviceDepartmentAction} className="flex gap-2">
                     <input type="hidden" name="headscaleNodeId" value={device.id} />
                     <select name="departmentId" defaultValue={device.departmentId ?? ""} className="rounded border px-2 py-1">
-                      <option value="">— chưa gán —</option>
+                      <option value="">— unassigned —</option>
                       {departments.map((d) => (
                         <option key={d.id} value={d.id}>
                           {d.name}
@@ -84,7 +84,7 @@ export default async function DevicesPage() {
                       ))}
                     </select>
                     <button type="submit" className="rounded bg-black px-2 py-1 text-white">
-                      Lưu
+                      Save
                     </button>
                   </form>
                 ) : (
@@ -96,7 +96,7 @@ export default async function DevicesPage() {
                   <form action={assignDeviceMemberAction} className="flex gap-2">
                     <input type="hidden" name="headscaleNodeId" value={device.id} />
                     <select name="assignedUserId" defaultValue={device.assignedUserId ?? ""} className="rounded border px-2 py-1">
-                      <option value="">— chưa gán —</option>
+                      <option value="">— unassigned —</option>
                       {deptMembers.map((m) => (
                         <option key={m.id} value={m.id}>
                           {m.name ?? m.email}
@@ -104,7 +104,7 @@ export default async function DevicesPage() {
                       ))}
                     </select>
                     <button type="submit" className="rounded bg-black px-2 py-1 text-white">
-                      Lưu
+                      Save
                     </button>
                   </form>
                 ) : (

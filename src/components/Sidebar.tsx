@@ -38,7 +38,7 @@ export function Sidebar({ role }: { role: Role }) {
           type="submit"
           className="w-full rounded px-3 py-2 text-left text-sm font-medium hover:bg-black/[.04] dark:hover:bg-white/[.08]"
         >
-          Đăng xuất
+          Sign out
         </button>
       </form>
     </nav>

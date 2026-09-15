@@ -1,42 +1,43 @@
-# Facescale — Kế hoạch triển khai
+# Facescale — Implementation Plan
 
-Headscale + Tailscale UI/UX quản lý member & device, dành cho người không chuyên
-network. Giai đoạn 1 (MVP) tập trung quản lý member/device thật tốt. Giai đoạn 2
-(sau khi MVP ổn định) mới thêm Slack approval workflow, policy engine nâng cao,
-vòng đời thiết bị.
+Headscale + Tailscale UI/UX for managing members & devices, aimed at people who
+aren't network specialists. Phase 1 (MVP) focuses on managing members/devices really
+well. Phase 2 (once the MVP is stable) adds the Slack approval workflow, an advanced
+policy engine, and device lifecycle management.
 
 ## Stack
 - Next.js 14 (App Router) + TypeScript + Tailwind — full-stack (UI + API routes)
-- Auth: NextAuth.js, config qua `AUTH_METHOD` (xem phần Auth bên dưới)
-- DB: SQLite qua Prisma (metadata app: department, gán device, audit log — không cache
-  trạng thái online/offline, lấy live từ Headscale API)
-- Headscale: gọi trực tiếp REST API qua client wrapper riêng
+- Auth: NextAuth.js, configured via `AUTH_METHOD` (see Auth section below)
+- DB: SQLite via Prisma (app metadata: department, device assignment, audit log — does
+  not cache online/offline status, that's fetched live from the Headscale API)
+- Headscale: calls the REST API directly via a custom client wrapper
 
 ## Role & access model
-3 role phân cấp: **Admin → Leader → Member**
-- Admin: quản lý toàn bộ device, gán device cho từng Department (mỗi Department có 1 Leader)
-- Leader: chỉ thấy device đã gán cho Department mình, tự phân tiếp cho Member trong department
-- Member: chỉ thấy device được Leader gán riêng cho mình
+3 tiered roles: **Admin → Leader → Member**
+- Admin: manages all devices, assigns devices to each Department (each Department has 1 Leader)
+- Leader: only sees devices assigned to their Department, assigns them further to Members within the department
+- Member: only sees devices the Leader assigned specifically to them
 
-Phase 1 code cứng 1 Leader/1 Department để giữ đơn giản.
+Phase 1 hardcodes 1 Leader/1 Department to keep things simple.
 
 ## Auth
-- Không dùng Google OAuth nữa (đổi theo yêu cầu ngày 2026-09-15). Method chọn qua
-  1 biến env `AUTH_METHOD=password|slack_otp`, **default `password`**:
-  - `password`: self-service signup (`/register`, email+password) + login bằng
-    email/password (NextAuth Credentials provider, password hash bằng scrypt).
-  - `slack_otp`: nhập email → sinh mã 6 số, gửi qua Slack DM (Slack Bot token) →
-    nhập mã để login (NextAuth Credentials provider riêng, verify OTP trong DB).
-  - Cả 2 method đều dùng chung `resolveSignInAccess()` để check domain/access-request
-    — logic domain-allow / AccessRequest PENDING-duyệt-từng-cái không đổi so với
-    thiết kế Google cũ, chỉ khác nguồn xác thực identity.
-- Domain chính (`@lixibox.com`) tự động cho vào, role mặc định Member
-- Email ngoài domain → tạo `AccessRequest` PENDING, chặn vào app, chờ Admin duyệt
-  từng cái một (trang Access Requests)
+- No longer using Google OAuth (changed per request on 2026-09-15). Method is selected
+  via a single env var `AUTH_METHOD=password|slack_otp`, **default `password`**:
+  - `password`: self-service signup (`/register`, email+password) + login with
+    email/password (NextAuth Credentials provider, password hashed with scrypt).
+  - `slack_otp`: enter email → a 6-digit code is generated and sent via Slack DM
+    (Slack Bot token) → enter the code to log in (separate NextAuth Credentials
+    provider, OTP verified against the DB).
+  - Both methods share `resolveSignInAccess()` to check domain/access-request —
+    the domain-allow / AccessRequest PENDING-approve-one-by-one logic is unchanged
+    from the old Google-based design, only the identity source differs.
+- Primary domain (`@lixibox.com`) is auto-admitted, default role Member
+- Email outside the domain → creates an `AccessRequest` PENDING, blocked from the app,
+  waits for Admin to approve individually (Access Requests page)
 
 ## Data model (Prisma)
 - `User`: email, name, image, passwordHash (nullable), role (ADMIN/LEADER/MEMBER), departmentId
-- `LoginOtp`: email, code, expiresAt, consumedAt — mã OTP một lần cho `slack_otp`
+- `LoginOtp`: email, code, expiresAt, consumedAt — one-time OTP code for `slack_otp`
 - `Department`: name, leaderId
 - `DeviceMeta`: headscaleNodeId, departmentId (nullable), assignedUserId (nullable), notes
 - `AccessRequest`: email, status (PENDING/APPROVED/REJECTED), requestedAt, decidedById, decidedAt
@@ -45,57 +46,57 @@ Phase 1 code cứng 1 Leader/1 Department để giữ đơn giản.
 ## Phases
 
 - **Phase 0 — Bootstrap project**: Next.js + TS + Tailwind, `.gitignore`, `.env.example`,
-  README. Chưa có logic, chỉ để `npm run dev` chạy được.
+  README. No logic yet, just enough for `npm run dev` to work.
 
-- **Phase 0.5 — Headscale dev sandbox**: `docker-compose.yml` chạy 1 headscale server +
-  2 container `tailscale/tailscale` join vào làm node mẫu, script bootstrap tạo
-  user/API key/preauthkey. Dùng để dev/test độc lập với instance thật.
+- **Phase 0.5 — Headscale dev sandbox**: `docker-compose.yml` running 1 headscale server +
+  2 `tailscale/tailscale` containers joined as sample nodes, plus a bootstrap script that
+  creates the user/API key/preauthkey. Used for dev/test independent of a real instance.
 
-- **Phase 1 — Data layer**: `prisma/schema.prisma` (5 model ở trên), Prisma client,
-  migration đầu, seed 1 admin mặc định.
+- **Phase 1 — Data layer**: `prisma/schema.prisma` (the 5 models above), Prisma client,
+  first migration, seeded a default admin.
 
-- **Phase 2 — Auth**: check domain `@lixibox.com`, tạo `AccessRequest` cho email
-  ngoài domain, trang `/pending`.
-  > Cập nhật 2026-09-15: đổi từ Google OAuth sang `AUTH_METHOD=password|slack_otp`
-  > (default `password`) — xem chi tiết ở mục Auth phía trên. Đã verify thật bằng
-  > curl thẳng vào NextAuth callback endpoints: `/api/auth/callback/credentials`
-  > (đúng password → session cookie; sai password → `CredentialsSignin`) và
-  > `/api/auth/callback/slack-otp` (đúng mã → session cookie; dùng lại mã cũ →
-  > từ chối). `sendOtpToSlack()` verify fail rõ ràng với fake `SLACK_BOT_TOKEN`
-  > (`invalid_auth`), không silent swallow.
+- **Phase 2 — Auth**: check the `@lixibox.com` domain, create an `AccessRequest` for
+  emails outside the domain, `/pending` page.
+  > Update 2026-09-15: switched from Google OAuth to `AUTH_METHOD=password|slack_otp`
+  > (default `password`) — see the Auth section above for details. Verified for real via
+  > curl straight against the NextAuth callback endpoints: `/api/auth/callback/credentials`
+  > (correct password → session cookie; wrong password → `CredentialsSignin`) and
+  > `/api/auth/callback/slack-otp` (correct code → session cookie; reusing an old code →
+  > rejected). `sendOtpToSlack()` fails verification clearly with a fake `SLACK_BOT_TOKEN`
+  > (`invalid_auth`), no silent swallowing.
 
-- **Phase 3 — Headscale API client**: `src/lib/headscale.ts` — connect bằng
-  `HEADSCALE_URL`/`HEADSCALE_API_KEY`, list nodes, map trạng thái online/offline.
-  Test lên sandbox Phase 0.5.
-  > Quyết định: **bỏ cột direct/DERP ở Phase 1**. Đã verify bằng sandbox: Headscale
-  > REST API (`/api/v1/node`) không có field này — đó là data-plane info chỉ tồn
-  > tại phía client (`tailscale status --json` trên từng node), Headscale control
-  > plane không lưu/expose lại tập trung. Muốn có lại thì cần thêm 1 "monitor node"
-  > (backend tự join tailnet) — để dành cho Giai đoạn 2 nếu cần.
+- **Phase 3 — Headscale API client**: `src/lib/headscale.ts` — connects using
+  `HEADSCALE_URL`/`HEADSCALE_API_KEY`, lists nodes, maps online/offline status.
+  Tested against the Phase 0.5 sandbox.
+  > Decision: **drop the direct/DERP column in Phase 1**. Verified via the sandbox: the
+  > Headscale REST API (`/api/v1/node`) doesn't expose this field — it's data-plane info
+  > that only exists client-side (`tailscale status --json` on each node); the Headscale
+  > control plane doesn't store/expose it centrally. Getting it back would require adding
+  > a "monitor node" (a backend that joins the tailnet itself) — deferred to Phase 2 if needed.
 
-- **Phase 4 — Layout & phân quyền UI**: Sidebar/menu chính, layout, helper
-  `src/lib/permissions.ts` scope dữ liệu theo role.
+- **Phase 4 — Layout & UI permissions**: main Sidebar/menu, layout, `src/lib/permissions.ts`
+  helper to scope data by role.
 
-- **Phase 5 — Devices**: trang Devices, Admin gán Department, Leader gán Member,
-  Member chỉ xem của mình.
+- **Phase 5 — Devices**: Devices page, Admin assigns Department, Leader assigns Member,
+  Member only sees their own.
 
-- **Phase 6 — Members**: CRUD user, set role, set department.
+- **Phase 6 — Members**: user CRUD, set role, set department.
 
-- **Phase 7 — Departments**: CRUD department, set leader.
+- **Phase 7 — Departments**: department CRUD, set leader.
 
-- **Phase 8 — Access Requests**: Admin duyệt/từ chối email ngoài domain.
+- **Phase 8 — Access Requests**: Admin approves/rejects emails outside the domain.
 
-- **Phase 9 — Dashboard**: tổng số member/device, % online.
+- **Phase 9 — Dashboard**: total member/device counts, % online.
 
-- **Phase 10 — Activity (Audit log)**: hiển thị log, ghi log ở action tạo/sửa/xóa/gán
-  từ Phase 5–8.
+- **Phase 10 — Activity (Audit log)**: displays logs, logs written on create/edit/delete/assign
+  actions from Phases 5–8.
 
-## Giai đoạn 2 (chưa làm)
-Slack approval workflow, policy engine nâng cao, vòng đời thiết bị.
+## Phase 2 (not started)
+Slack approval workflow, advanced policy engine, device lifecycle management.
 
 ## TODO
-- [ ] Nếu dùng `AUTH_METHOD=slack_otp`: tạo Slack App/Bot thật (scope
-      `users:read.email`, `chat:write`, `im:write`), điền `SLACK_BOT_TOKEN` thật
-      vào `.env` — hiện đang là fake value nên `sendOtpToSlack()` sẽ fail.
-- [ ] Cung cấp `HEADSCALE_URL`/`HEADSCALE_API_KEY` của instance thật khi deploy
-      (hiện đang trỏ vào sandbox local ở Phase 0.5).
+- [ ] If using `AUTH_METHOD=slack_otp`: create a real Slack App/Bot (scopes
+      `users:read.email`, `chat:write`, `im:write`), fill in a real `SLACK_BOT_TOKEN`
+      in `.env` — it's currently a fake value so `sendOtpToSlack()` will fail.
+- [ ] Provide the real instance's `HEADSCALE_URL`/`HEADSCALE_API_KEY` when deploying
+      (currently pointing at the local sandbox from Phase 0.5).

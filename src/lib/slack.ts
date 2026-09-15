@@ -39,6 +39,6 @@ export async function sendOtpToSlack(email: string, code: string): Promise<void>
   );
   await postJson("chat.postMessage", {
     channel: opened.channel.id,
-    text: `Mã đăng nhập Facescale của bạn: ${code} (hết hạn sau 5 phút)`,
+    text: `Your Facescale sign-in code: ${code} (expires in 5 minutes)`,
   }, token);
 }

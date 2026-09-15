@@ -8,7 +8,7 @@ export default async function AccessRequestsPage() {
   if (!session?.user || !isAdmin(session.user)) {
     return (
       <main className="p-8">
-        <p>Chỉ Admin mới xem được trang này.</p>
+        <p>Only Admins can view this page.</p>
       </main>
     );
   }
@@ -26,8 +26,8 @@ export default async function AccessRequestsPage() {
           <tr className="border-b border-black/[.08] dark:border-white/[.145]">
             <th className="py-2 pr-4">Email</th>
             <th className="py-2 pr-4">Status</th>
-            <th className="py-2 pr-4">Yêu cầu lúc</th>
-            <th className="py-2 pr-4">Quyết định bởi</th>
+            <th className="py-2 pr-4">Requested at</th>
+            <th className="py-2 pr-4">Decided by</th>
             <th className="py-2 pr-4">Actions</th>
           </tr>
         </thead>
@@ -44,13 +44,13 @@ export default async function AccessRequestsPage() {
                     <form action={approveAccessRequestAction}>
                       <input type="hidden" name="id" value={r.id} />
                       <button type="submit" className="rounded bg-green-700 px-2 py-1 text-white">
-                        Duyệt
+                        Approve
                       </button>
                     </form>
                     <form action={rejectAccessRequestAction}>
                       <input type="hidden" name="id" value={r.id} />
                       <button type="submit" className="rounded border border-red-600 px-2 py-1 text-red-600">
-                        Từ chối
+                        Reject
                       </button>
                     </form>
                   </div>

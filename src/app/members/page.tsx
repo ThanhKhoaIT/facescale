@@ -23,7 +23,7 @@ export default async function MembersPage() {
         <thead>
           <tr className="border-b border-black/[.08] dark:border-white/[.145]">
             <th className="py-2 pr-4">Email</th>
-            <th className="py-2 pr-4">Tên</th>
+            <th className="py-2 pr-4">Name</th>
             <th className="py-2 pr-4">Role</th>
             <th className="py-2 pr-4">Department</th>
             {admin && <th className="py-2 pr-4">Actions</th>}
@@ -54,7 +54,7 @@ export default async function MembersPage() {
                       ))}
                     </select>
                     <button type="submit" className="rounded bg-black px-2 py-1 text-white">
-                      Lưu
+                      Save
                     </button>
                   </form>
                 ) : (
@@ -67,7 +67,7 @@ export default async function MembersPage() {
                   <form action={deleteUserAction}>
                     <input type="hidden" name="id" value={u.id} />
                     <button type="submit" className="rounded border border-red-600 px-2 py-1 text-red-600">
-                      Xoá
+                      Delete
                     </button>
                   </form>
                 </td>
@@ -79,10 +79,10 @@ export default async function MembersPage() {
 
       {admin && (
         <>
-          <h2 className="mb-2 mt-8 text-lg font-semibold">Thêm member</h2>
+          <h2 className="mb-2 mt-8 text-lg font-semibold">Add member</h2>
           <form action={createUserAction} className="flex flex-wrap gap-2">
             <input name="email" type="email" required placeholder="email@lixibox.com" className="rounded border px-2 py-1" />
-            <input name="name" placeholder="Tên (tuỳ chọn)" className="rounded border px-2 py-1" />
+            <input name="name" placeholder="Name (optional)" className="rounded border px-2 py-1" />
             <select name="role" defaultValue="MEMBER" className="rounded border px-2 py-1">
               {ROLES.map((r) => (
                 <option key={r} value={r}>
@@ -99,7 +99,7 @@ export default async function MembersPage() {
               ))}
             </select>
             <button type="submit" className="rounded bg-black px-3 py-1 text-white">
-              Tạo
+              Create
             </button>
           </form>
         </>

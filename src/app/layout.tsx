@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Facescale",
-  description: "Headscale + Tailscale UI/UX quản lý member & device cho Lixibox",
+  description: "Headscale + Tailscale UI/UX for managing members & devices at Lixibox",
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {

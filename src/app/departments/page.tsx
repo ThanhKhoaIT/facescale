@@ -23,7 +23,7 @@ export default async function DepartmentsPage() {
       <table className="w-full text-left text-sm">
         <thead>
           <tr className="border-b border-black/[.08] dark:border-white/[.145]">
-            <th className="py-2 pr-4">Tên</th>
+            <th className="py-2 pr-4">Name</th>
             <th className="py-2 pr-4">Leader</th>
             <th className="py-2 pr-4">Members</th>
             <th className="py-2 pr-4">Devices</th>
@@ -39,7 +39,7 @@ export default async function DepartmentsPage() {
                   <form action={setDepartmentLeaderAction} className="flex gap-2">
                     <input type="hidden" name="departmentId" value={d.id} />
                     <select name="leaderId" defaultValue={d.leaderId ?? ""} className="rounded border px-2 py-1">
-                      <option value="">— chưa có —</option>
+                      <option value="">— none —</option>
                       {users.map((u) => (
                         <option key={u.id} value={u.id}>
                           {u.email}
@@ -47,7 +47,7 @@ export default async function DepartmentsPage() {
                       ))}
                     </select>
                     <button type="submit" className="rounded bg-black px-2 py-1 text-white">
-                      Lưu
+                      Save
                     </button>
                   </form>
                 ) : (
@@ -61,7 +61,7 @@ export default async function DepartmentsPage() {
                   <form action={deleteDepartmentAction}>
                     <input type="hidden" name="id" value={d.id} />
                     <button type="submit" className="rounded border border-red-600 px-2 py-1 text-red-600">
-                      Xoá
+                      Delete
                     </button>
                   </form>
                 </td>
@@ -73,11 +73,11 @@ export default async function DepartmentsPage() {
 
       {admin && (
         <>
-          <h2 className="mb-2 mt-8 text-lg font-semibold">Thêm department</h2>
+          <h2 className="mb-2 mt-8 text-lg font-semibold">Add department</h2>
           <form action={createDepartmentAction} className="flex gap-2">
-            <input name="name" required placeholder="Tên department" className="rounded border px-2 py-1" />
+            <input name="name" required placeholder="Department name" className="rounded border px-2 py-1" />
             <button type="submit" className="rounded bg-black px-3 py-1 text-white">
-              Tạo
+              Create
             </button>
           </form>
         </>
