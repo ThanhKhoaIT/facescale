@@ -70,3 +70,11 @@ Phase 1 code cứng 1 Leader/1 Department để giữ đơn giản.
 
 ## Giai đoạn 2 (chưa làm)
 Slack approval workflow, policy engine nâng cao, vòng đời thiết bị.
+
+## TODO
+- [ ] Tạo Google OAuth Client thật (Google Cloud Console, org Lixibox) — hiện `.env`
+      đang dùng fake `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` để scaffold, login
+      thật sẽ fail cho tới khi thay bằng giá trị thật. Redirect URI cần add:
+      `http://localhost:3000/api/auth/callback/google`.
+- [ ] Cung cấp `HEADSCALE_URL`/`HEADSCALE_API_KEY` của instance thật khi deploy
+      (hiện đang trỏ vào sandbox local ở Phase 0.5).
