@@ -1,13 +1,13 @@
 # Facescale — Kế hoạch triển khai
 
-Headscale + Tailscale UI/UX quản lý member & device, xác thực Google, dành cho người
-không chuyên network. Giai đoạn 1 (MVP) tập trung quản lý member/device thật tốt.
-Giai đoạn 2 (sau khi MVP ổn định) mới thêm Slack approval workflow, policy engine
-nâng cao, vòng đời thiết bị.
+Headscale + Tailscale UI/UX quản lý member & device, dành cho người không chuyên
+network. Giai đoạn 1 (MVP) tập trung quản lý member/device thật tốt. Giai đoạn 2
+(sau khi MVP ổn định) mới thêm Slack approval workflow, policy engine nâng cao,
+vòng đời thiết bị.
 
 ## Stack
 - Next.js 14 (App Router) + TypeScript + Tailwind — full-stack (UI + API routes)
-- Auth: NextAuth.js, Google OAuth
+- Auth: NextAuth.js, config qua `AUTH_METHOD` (xem phần Auth bên dưới)
 - DB: SQLite qua Prisma (metadata app: department, gán device, audit log — không cache
   trạng thái online/offline, lấy live từ Headscale API)
 - Headscale: gọi trực tiếp REST API qua client wrapper riêng
@@ -21,12 +21,22 @@ nâng cao, vòng đời thiết bị.
 Phase 1 code cứng 1 Leader/1 Department để giữ đơn giản.
 
 ## Auth
+- Không dùng Google OAuth nữa (đổi theo yêu cầu ngày 2026-09-15). Method chọn qua
+  1 biến env `AUTH_METHOD=password|slack_otp`, **default `password`**:
+  - `password`: self-service signup (`/register`, email+password) + login bằng
+    email/password (NextAuth Credentials provider, password hash bằng scrypt).
+  - `slack_otp`: nhập email → sinh mã 6 số, gửi qua Slack DM (Slack Bot token) →
+    nhập mã để login (NextAuth Credentials provider riêng, verify OTP trong DB).
+  - Cả 2 method đều dùng chung `resolveSignInAccess()` để check domain/access-request
+    — logic domain-allow / AccessRequest PENDING-duyệt-từng-cái không đổi so với
+    thiết kế Google cũ, chỉ khác nguồn xác thực identity.
 - Domain chính (`@lixibox.com`) tự động cho vào, role mặc định Member
 - Email ngoài domain → tạo `AccessRequest` PENDING, chặn vào app, chờ Admin duyệt
   từng cái một (trang Access Requests)
 
 ## Data model (Prisma)
-- `User`: email, name, image, role (ADMIN/LEADER/MEMBER), departmentId
+- `User`: email, name, image, passwordHash (nullable), role (ADMIN/LEADER/MEMBER), departmentId
+- `LoginOtp`: email, code, expiresAt, consumedAt — mã OTP một lần cho `slack_otp`
 - `Department`: name, leaderId
 - `DeviceMeta`: headscaleNodeId, departmentId (nullable), assignedUserId (nullable), notes
 - `AccessRequest`: email, status (PENDING/APPROVED/REJECTED), requestedAt, decidedById, decidedAt
@@ -44,8 +54,15 @@ Phase 1 code cứng 1 Leader/1 Department để giữ đơn giản.
 - **Phase 1 — Data layer**: `prisma/schema.prisma` (5 model ở trên), Prisma client,
   migration đầu, seed 1 admin mặc định.
 
-- **Phase 2 — Auth**: NextAuth Google provider, check domain `@lixibox.com`, tạo
-  `AccessRequest` cho email ngoài domain, trang `/pending`.
+- **Phase 2 — Auth**: check domain `@lixibox.com`, tạo `AccessRequest` cho email
+  ngoài domain, trang `/pending`.
+  > Cập nhật 2026-09-15: đổi từ Google OAuth sang `AUTH_METHOD=password|slack_otp`
+  > (default `password`) — xem chi tiết ở mục Auth phía trên. Đã verify thật bằng
+  > curl thẳng vào NextAuth callback endpoints: `/api/auth/callback/credentials`
+  > (đúng password → session cookie; sai password → `CredentialsSignin`) và
+  > `/api/auth/callback/slack-otp` (đúng mã → session cookie; dùng lại mã cũ →
+  > từ chối). `sendOtpToSlack()` verify fail rõ ràng với fake `SLACK_BOT_TOKEN`
+  > (`invalid_auth`), không silent swallow.
 
 - **Phase 3 — Headscale API client**: `src/lib/headscale.ts` — connect bằng
   `HEADSCALE_URL`/`HEADSCALE_API_KEY`, list nodes, map trạng thái online/offline.
@@ -77,9 +94,8 @@ Phase 1 code cứng 1 Leader/1 Department để giữ đơn giản.
 Slack approval workflow, policy engine nâng cao, vòng đời thiết bị.
 
 ## TODO
-- [ ] Tạo Google OAuth Client thật (Google Cloud Console, org Lixibox) — hiện `.env`
-      đang dùng fake `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` để scaffold, login
-      thật sẽ fail cho tới khi thay bằng giá trị thật. Redirect URI cần add:
-      `http://localhost:3000/api/auth/callback/google`.
+- [ ] Nếu dùng `AUTH_METHOD=slack_otp`: tạo Slack App/Bot thật (scope
+      `users:read.email`, `chat:write`, `im:write`), điền `SLACK_BOT_TOKEN` thật
+      vào `.env` — hiện đang là fake value nên `sendOtpToSlack()` sẽ fail.
 - [ ] Cung cấp `HEADSCALE_URL`/`HEADSCALE_API_KEY` của instance thật khi deploy
       (hiện đang trỏ vào sandbox local ở Phase 0.5).

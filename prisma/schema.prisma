@@ -23,6 +23,7 @@ model User {
   email        String   @unique
   name         String?
   image        String?
+  passwordHash String?
   role         Role     @default(MEMBER)
   departmentId String?
   department   Department? @relation("DepartmentMembers", fields: [departmentId], references: [id])
@@ -64,6 +65,17 @@ model AccessRequest {
   decidedById  String?
   decidedBy    User?    @relation("AccessRequestDecider", fields: [decidedById], references: [id])
   decidedAt    DateTime?
+}
+
+model LoginOtp {
+  id         String    @id @default(cuid())
+  email      String
+  code       String
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([email, code])
 }
 
 model AuditLog {

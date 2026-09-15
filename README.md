@@ -7,7 +7,7 @@ cho roadmap chi tiết theo phase.
 
 ```bash
 npm install
-cp .env.example .env   # điền Headscale URL/API key, Google OAuth credentials
+cp .env.example .env   # điền Headscale URL/API key; AUTH_METHOD=password (mặc định) chạy được ngay, không cần key gì thêm
 npm run dev
 ```
 
@@ -32,9 +32,17 @@ Paste `HEADSCALE_API_KEY` vào `.env` (`HEADSCALE_URL` mặc định đã trỏ
 direct) — nhưng không sao, vì Phase 1 chỉ hiển thị online/offline, không hiển thị
 direct/DERP (xem PLAN.md phần Phase 3 để biết lý do).
 
+## Auth
+
+`AUTH_METHOD` trong `.env` chọn cách đăng nhập (xem PLAN.md mục Auth):
+- `password` (mặc định): tự đăng ký ở `/register` (email+password), rồi đăng nhập
+  bình thường.
+- `slack_otp`: nhập email, nhận mã 6 số qua Slack DM, nhập mã để đăng nhập. Cần
+  `SLACK_BOT_TOKEN` thật (xem TODO trong PLAN.md).
+
 ## Stack
 
 - Next.js (App Router) + TypeScript + Tailwind
-- NextAuth.js (Google OAuth)
+- NextAuth.js (Credentials — password hoặc Slack OTP, config qua `AUTH_METHOD`)
 - Prisma + SQLite
 - Headscale REST API (client wrapper riêng)

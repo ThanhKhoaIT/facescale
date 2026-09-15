@@ -1,15 +1,48 @@
 import NextAuth from "next-auth";
-import Google from "next-auth/providers/google";
+import Credentials from "next-auth/providers/credentials";
 import { prisma } from "@/lib/prisma";
 import { resolveSignInAccess } from "@/lib/access-control";
+import { verifyPassword } from "@/lib/password";
+import { verifyOtp } from "@/lib/otp";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: true,
   secret: process.env.NEXTAUTH_SECRET,
+  session: { strategy: "jwt" },
   providers: [
-    Google({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    Credentials({
+      id: "credentials",
+      name: "Email/Password",
+      credentials: { email: {}, password: {} },
+      async authorize(credentials) {
+        const email = String(credentials?.email ?? "").trim().toLowerCase();
+        const password = String(credentials?.password ?? "");
+        if (!email || !password) return null;
+
+        const user = await prisma.user.findUnique({ where: { email } });
+        if (!user?.passwordHash) return null;
+        if (!verifyPassword(password, user.passwordHash)) return null;
+
+        return { id: user.id, email: user.email, name: user.name, image: user.image };
+      },
+    }),
+    Credentials({
+      id: "slack-otp",
+      name: "Slack OTP",
+      credentials: { email: {}, code: {} },
+      async authorize(credentials) {
+        const email = String(credentials?.email ?? "").trim().toLowerCase();
+        const code = String(credentials?.code ?? "");
+        if (!email || !code) return null;
+
+        const valid = await verifyOtp(email, code);
+        if (!valid) return null;
+
+        const user = await prisma.user.findUnique({ where: { email } });
+        if (!user) return null;
+
+        return { id: user.id, email: user.email, name: user.name, image: user.image };
+      },
     }),
   ],
   callbacks: {
